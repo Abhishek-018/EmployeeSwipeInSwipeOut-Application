@@ -19,12 +19,13 @@ public class LoginService {
     public ApiResponseEntity Login(Employee employee) {
         ApiResponseEntity response = new ApiResponseEntity();
         List<Employee> employeeDetails = employeeRepository.findAll();
-        String message = "Login Successful";
         boolean matchFound = false;
-        String employeeEmail = employee.getEmployeeEmail();
+
+
 
         if (employeeDetails.isEmpty()) {
 //            return "Database is Empty";
+
             response.setMessage("Database is Empty");
             response.setStatus(HttpStatus.NO_CONTENT);
             return response;
@@ -36,11 +37,14 @@ public class LoginService {
                         response.setResponseBody(emp);
                         response.setMessage("Login Successful");
                         response.setStatus(HttpStatus.OK);
-                        return response;
-//                        break;
+                        response.setStatusCode(HttpStatus.OK.value());
+                        //return response;
+                        break;
                     }else{
                         response.setMessage("Incorrect Password");
                         response.setStatus(HttpStatus.UNAUTHORIZED);
+                        response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+
 //                        return "Incorrect Password";
                         return response;
                     }

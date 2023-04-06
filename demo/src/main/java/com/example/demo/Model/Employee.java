@@ -50,6 +50,8 @@ public class Employee implements Serializable {
     private String employeeEmail;
 
     @Column(name = "employee_designation")
+    @NotNull(message = "Employee Designation Cannot be null")
+    @NotEmpty(message = "Employee Designation cannot be empty")
     private String employeeDesignation;
 
     @Column(name = "employee_dob",nullable = false)
@@ -59,12 +61,14 @@ public class Employee implements Serializable {
 
     @Column(name = "password",nullable = false)
     @NotNull(message = "Password cannot be null")
+    @NotEmpty(message = "Password cannot be empty")
     @Pattern(regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@$!%*?&])[A-Za-z\\d$@$!%*?&].{8,}", message = "Invalid Password")
     private String password;
 
     @Column(name = "confirm_password",nullable = false)
     @NotNull(message = "Confirm password cannot be null")
-    @Pattern(regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@$!%*?&])[A-Za-z\\d$@$!%*?&].{8,}", message = "Invalid Password")
+    @NotEmpty(message = "Confirm Password cannot be empty")
+    @Pattern(regexp = "(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[$@$!%*?&])[A-Za-z\\d$@$!%*?&].{8,}", message = "Invalid Confirm Password")
     private String confirmPassword;
 
     @JsonIgnore

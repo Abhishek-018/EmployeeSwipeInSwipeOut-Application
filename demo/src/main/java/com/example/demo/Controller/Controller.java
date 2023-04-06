@@ -2,6 +2,7 @@ package com.example.demo.Controller;
 
 import com.example.demo.Exceptions.EmployeeEmailExistException;
 import com.example.demo.Exceptions.PasswordMismatchException;
+import com.example.demo.Model.ApiResponseEntity;
 import com.example.demo.Model.Employee;
 import com.example.demo.Model.Swipe;
 import com.example.demo.Service.EmployeeService;
@@ -17,7 +18,7 @@ import org.springframework.validation.ObjectError;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 //REpresentative State Transfer
 @RestController
@@ -31,6 +32,7 @@ public class Controller {
 
 
 
+
     @GetMapping(path = "/getEmployees")
     public List<Employee> getEmployeeDetails(){
         return employeeService.getEmployeeDetails();
@@ -40,53 +42,6 @@ public class Controller {
 //    public Employee addEmployeeJdbc(@RequestBody Employee employee){
 //        return employeeService.addEmployeeJdbc(employee);
 //    }
-
-    @PostMapping(path = "/add")
-    @CrossOrigin(origins = "http://localhost:4200")
-    public ResponseEntity<?> addEmployee(@Valid  @RequestBody Employee employee, BindingResult result){
-
-//        Employee savedEmployee =  employeeService.addEmployee(employee);
-//        if(savedEmployee != null) {
-//            return ResponseEntity.ok("Employee added successfully");
-//        } else {
-//            return ResponseEntity.badRequest().body("Unable to add employee");
-//        }
-
-//        if (result.hasErrors()) {
-//
-//            List<String> errors = result.getAllErrors().stream()
-//                    .map(ObjectError::getDefaultMessage)
-//                    .collect(Collectors.toList());
-//            return ResponseEntity.badRequest().body(errors);
-//        }
-//        Employee savedEmployee = employeeService.addEmployee(employee);
-//        return ResponseEntity.ok(savedEmployee);
-
-        if (result.hasErrors()){
-            List<ObjectError> errors = result.getAllErrors();
-            List<String>errorMessages = new ArrayList<>();
-
-            for (ObjectError error : errors) {
-                errorMessages.add(error.getDefaultMessage());
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error adding employee. Invalid input data. " +"\n"+ errorMessages);
-
-        }
-
-        try {
-            return ResponseEntity.ok().body(employeeService.addEmployee(employee));
-
-        } catch (EmployeeEmailExistException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-        catch (PasswordMismatchException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-
-
-    }
-
-
 
 
 

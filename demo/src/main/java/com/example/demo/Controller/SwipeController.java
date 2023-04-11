@@ -1,42 +1,30 @@
 package com.example.demo.Controller;
 
-import com.example.demo.Exceptions.EmployeeEmailExistException;
-import com.example.demo.Exceptions.PasswordMismatchException;
-import com.example.demo.Model.ApiResponseEntity;
 import com.example.demo.Model.Employee;
 import com.example.demo.Model.Swipe;
-import com.example.demo.Service.EmployeeService;
 import com.example.demo.Service.SwipeService;
 //import com.example.demo.repository.EmployeeJdbcRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.ObjectError;
 
-import javax.validation.Valid;
-import java.util.ArrayList;
+import java.sql.Date;
 import java.util.List;
 //import java.util.stream.Collectors;
 
 //REpresentative State Transfer
 @RestController
 
-public class Controller {
+public class SwipeController {
 
-    @Autowired
-    EmployeeService employeeService;
+
     @Autowired
     SwipeService swipeService;
 
 
 
 
-    @GetMapping(path = "/getEmployees")
-    public List<Employee> getEmployeeDetails(){
-        return employeeService.getEmployeeDetails();
-    }
+
 
 //    @PostMapping(path = "/addJdbc")
 //    public Employee addEmployeeJdbc(@RequestBody Employee employee){
@@ -66,16 +54,13 @@ public class Controller {
         }
     }
 
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping(path = "/getEmployeeSwipeRecordForDate")
 
-    @GetMapping(path = "/getEmployeesByDate")
-    //public List<Swipe> getEmployeeByDate(@PathVariable Date date, @PathVariable int id){
-    public List<Swipe> getEmployeeByDate(@RequestBody Swipe swipe){
+    public List<Swipe> getEmployeeSwipeRecordForDate(@RequestParam int employeeId, @RequestParam String date){
+        Date sqlDate = Date.valueOf(date);
+        return swipeService.getEmployeeSwipeRecordForDate(employeeId,sqlDate);
 
-       return swipeService.getAllEmployeesForDate(swipe);
-//        Swipe swipeRequest = new Swipe();
-//        swipeRequest.setEmployee(swipe.getEmployee());
-//        swipeRequest.setDate(swipe.getDate());
-//        return swipeService.getAllEmployeesForDate(swipeRequest);
 
     }
 

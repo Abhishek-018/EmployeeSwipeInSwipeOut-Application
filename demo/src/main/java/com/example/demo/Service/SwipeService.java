@@ -13,7 +13,7 @@ import java.time.LocalTime;
 
 import java.time.format.DateTimeFormatter;
 
-import java.util.ArrayList;
+
 import java.util.List;
 
 @Service
@@ -96,12 +96,11 @@ public class SwipeService {
     }
 
 
-       public List<Swipe> getAllEmployeesForDate(Swipe swipe) {
+       public List<Swipe> getEmployeeSwipeRecordForDate(int employeeId, Date date) {
 
 
-           int id = swipe.getEmployee().getEmployeeId();
-           Employee emp = employeeRepository.findByEmployeeId(id);
-           Date date = swipe.getDate();
+
+           Employee emp = employeeRepository.findByEmployeeId(employeeId);
 
 
            List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);

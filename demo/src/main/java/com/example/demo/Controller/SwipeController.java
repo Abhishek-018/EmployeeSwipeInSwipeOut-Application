@@ -2,6 +2,7 @@ package com.example.demo.Controller;
 
 import com.example.demo.Model.Employee;
 import com.example.demo.Model.Swipe;
+import com.example.demo.Model.SwipeApiResponseEntity;
 import com.example.demo.Service.SwipeService;
 //import com.example.demo.repository.EmployeeJdbcRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,71 +33,62 @@ public class SwipeController {
 //    }
 
 
-
+    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(path ="/out")
-    public ResponseEntity<String> swipeOut(@RequestBody Employee employee) {
-        try {
-            swipeService.swipeOut(employee);
-            return ResponseEntity.ok("Swipe out successful.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error swiping out: " + e.getMessage());
-        }
+    public ResponseEntity<SwipeApiResponseEntity> swipeOut(@RequestParam int employeeId ) {
+            SwipeApiResponseEntity response = swipeService.swipeOut(employeeId);
+            return ResponseEntity.status(response.getStatus()).body(response);
+
     }
-
+    @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(path ="/in")
-    public ResponseEntity<String> swipeIn(@RequestBody Swipe swipe) {
+    public ResponseEntity<SwipeApiResponseEntity> swipeIn(@RequestParam int employeeId) {
 
-        try {
-            swipeService.swipeIn(swipe);
-            return ResponseEntity.ok("Swipe in successful.");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error swiping in: " + e.getMessage());
-        }
+
+          SwipeApiResponseEntity response =   swipeService.swipeIn(employeeId);
+            return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path = "/getEmployeeSwipeRecordForDate")
 
-    public List<Swipe> getEmployeeSwipeRecordForDate(@RequestParam int employeeId, @RequestParam String date){
+    public ResponseEntity<SwipeApiResponseEntity> getEmployeeSwipeRecordForDate(@RequestParam int employeeId, @RequestParam String date){
         Date sqlDate = Date.valueOf(date);
-        return swipeService.getEmployeeSwipeRecordForDate(employeeId,sqlDate);
+        SwipeApiResponseEntity swipeApiResponseEntity =  swipeService.getEmployeeSwipeRecordForDate(employeeId,sqlDate);
+        return  ResponseEntity.status(swipeApiResponseEntity.getStatus()).body(swipeApiResponseEntity);
 
 
     }
 
-
+    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path = "/getEmployeesActualWorkingHours")
 
-    public String getEmployeeActualWorkingHours(@RequestBody Swipe swipe){
-        try {
-            return swipeService.calculateActualWorkingHours(swipe);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+    public ResponseEntity<SwipeApiResponseEntity> getEmployeeActualWorkingHours(@RequestParam int employeeId,@RequestParam String date){
+        Date sqlDate = Date.valueOf(date);
+        SwipeApiResponseEntity swipeApiResponseEntity = swipeService.calculateActualWorkingHours(employeeId,sqlDate);
+        return ResponseEntity.status(swipeApiResponseEntity.getStatus()).body(swipeApiResponseEntity);
+
+
 
 
     }
-
+    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path = "/getEmployeesTotalWorkingHours")
 
-    public String getEmployeeTotalWorkingHours(@RequestBody Swipe swipe)  {
-        try {
-            return swipeService.calculateTotalWorkingHours(swipe);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+    public ResponseEntity<SwipeApiResponseEntity> getEmployeeTotalWorkingHours(@RequestParam int employeeId,@RequestParam String date)  {
+        Date sqlDate = Date.valueOf(date);
+        SwipeApiResponseEntity response = swipeService.calculateTotalWorkingHours(employeeId,sqlDate);
+        return ResponseEntity.status(response.getStatus()).body(response);
+
 
     }
-
+    @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path = "/getEmployeeOutTime")
 
-    public String getEmployeeOutTime(@RequestBody Swipe swipe){
-        try {
-            return swipeService.totalOutTime(swipe);
-        }
-        catch (Exception e){
-            return e.getMessage();
-        }
+    public ResponseEntity<SwipeApiResponseEntity> getEmployeeOutTime(@RequestParam int employeeId,@RequestParam String date) {
+        Date sqlDate = Date.valueOf(date);
+        SwipeApiResponseEntity response = swipeService.totalOutTime(employeeId, sqlDate);
+        return ResponseEntity.status(response.getStatus()).body(response);
 
     }
 }

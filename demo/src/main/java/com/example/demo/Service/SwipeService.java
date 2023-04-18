@@ -2,9 +2,11 @@ package com.example.demo.Service;
 
 import com.example.demo.Model.Employee;
 import com.example.demo.Model.Swipe;
+import com.example.demo.Model.SwipeApiResponseEntity;
 import com.example.demo.repository.EmployeeRepository;
 import com.example.demo.repository.SwipeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
@@ -26,10 +28,12 @@ public class SwipeService {
     EmployeeRepository employeeRepository;
 
 
-    public void swipeIn(Swipe swipe) {
-        int id = swipe.getEmployee().getEmployeeId();
-        Employee emp = employeeRepository.findByEmployeeId(id);
-        Swipe lastSwipe = swipeRepository.findFirstByEmployeeOrderBySwipeInTimeDesc(emp);
+    public SwipeApiResponseEntity swipeIn(int  employeeId) {
+        SwipeApiResponseEntity response = new SwipeApiResponseEntity();
+        boolean SwipeInSuccessful = false;
+        Employee emp = employeeRepository.findByEmployeeId(employeeId);
+        Date newDate= new Date(new java.util.Date().getTime());
+        Swipe lastSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeDesc(emp,newDate);
         List<Swipe> getAllSwipe = swipeRepository.findAll();
 
         // Check if database isEmpty
@@ -37,8 +41,8 @@ public class SwipeService {
             Swipe newSwipe = new Swipe();
             newSwipe.setEmployee(emp);
 
-            Date date= new Date(new java.util.Date().getTime());
-            newSwipe.setDate(date);
+//            Date newDate= new Date(new java.util.Date().getTime());
+            newSwipe.setDate(newDate);
             LocalTime localTime = LocalTime.now();
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
             String st1 = localTime.format(dateTimeFormatter);
@@ -48,16 +52,29 @@ public class SwipeService {
 
             newSwipe.setSwipeInTime(lt);
             swipeRepository.save(newSwipe);
+
+            SwipeInSuccessful = true;
+            response.setMessage("Employee Swiped-in Successfully");
+            response.setStatus(HttpStatus.OK);
+            response.setStatusCode(HttpStatus.OK.value());
+            response.setEmployee(emp);
+            //return response;
+
             System.out.println(newSwipe.getSwipeInTime());
         }
         if (!getAllSwipe.isEmpty()){
+            //Inserting FirstSwipeIn record of Employee
 
             if (lastSwipe == null) {
+//                LocalTime fourPM = LocalTime.of(16, 00);
+//                if (LocalTime.now){
+//
+//                }
                 Swipe newSwipe = new Swipe();
                 newSwipe.setEmployee(emp);
 
-                Date date = new Date(new java.util.Date().getTime());
-                newSwipe.setDate(date);
+                //Date newDate = new Date(new java.util.Date().getTime());
+                newSwipe.setDate(newDate);
                 LocalTime localTime = LocalTime.now();
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
                 String st1 = localTime.format(dateTimeFormatter);
@@ -67,14 +84,28 @@ public class SwipeService {
 
                 newSwipe.setSwipeInTime(lt);
                 swipeRepository.save(newSwipe);
+
+                SwipeInSuccessful = true;
+
+                response.setMessage("Employee Swiped-in Successfully");
+                response.setStatus(HttpStatus.OK);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEmployee(emp);
+                //return response;
+
                 System.out.println(newSwipe.getSwipeInTime());
 
             } else if (lastSwipe !=null && lastSwipe.getSwipeOutTime()!=null ) {
+//                LocalTime fourPM = LocalTime.of(16, 00);
+//                if (LocalTime.now().isAfter(fourPM)){
+//
+//
+//                }
                 Swipe newSwipe = new Swipe();
                 newSwipe.setEmployee(emp);
 
-                Date date = new Date(new java.util.Date().getTime());
-                newSwipe.setDate(date);
+                //Date newDate = new Date(new java.util.Date().getTime());
+                newSwipe.setDate(newDate);
                 LocalTime localTime = LocalTime.now();
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
                 String st1 = localTime.format(dateTimeFormatter);
@@ -84,42 +115,99 @@ public class SwipeService {
 
                 newSwipe.setSwipeInTime(lt);
                 swipeRepository.save(newSwipe);
+
+                SwipeInSuccessful = true;
+
+                response.setMessage("Employee Swiped-in Successfully");
+                response.setStatus(HttpStatus.OK);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setEmployee(emp);
+                //return response;
+
                 System.out.println(newSwipe.getSwipeInTime());
 
             } else {
-                throw new RuntimeException("Cannot swipe in. Employee already swiped in and has not swiped out.");
+
+                response.setMessage("Cannot swipe in. Employee already swiped in and has not swiped out.");
+                response.setStatus(HttpStatus.UNAUTHORIZED);
+                response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+                response.setEmployee(emp);
+               // return response;
+
             }
 
+            }
 
+   if(SwipeInSuccessful){
+       return response;
+   }
+   return response;
         }
 
-    }
 
 
-       public List<Swipe> getEmployeeSwipeRecordForDate(int employeeId, Date date) {
 
+       public SwipeApiResponseEntity getEmployeeSwipeRecordForDate(int employeeId, Date date) {
 
+           SwipeApiResponseEntity response = new SwipeApiResponseEntity();
 
            Employee emp = employeeRepository.findByEmployeeId(employeeId);
 
-
            List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
-           return swipes;
+
+           if(swipes.isEmpty()){
+
+               response.setMessage("No Data Found For Employee And Date");
+               response.setStatus(HttpStatus.NO_CONTENT);
+               response.setStatusCode(HttpStatus.NO_CONTENT.value());
+               return response;
+
+           } else {
+               response.setMessage("Swipe Log: ");
+               response.setStatus(HttpStatus.OK);
+               response.setStatusCode(HttpStatus.OK.value());
+               Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp,date);
+               response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+               Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,date);
+               response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+               response.setResponseBody(swipes);
+               return response;
+           }
 
        }
 
 
 
-    public void swipeOut(Employee employee) {
-        // Find the most recent swipe record for this employee
-        int id = employee.getEmployeeId();
-        Employee emp = employeeRepository.findByEmployeeId(id);
-        Swipe lastSwipe = swipeRepository.findFirstByEmployeeOrderBySwipeInTimeDesc(emp);
+    public SwipeApiResponseEntity swipeOut(int employeeId) {
+        SwipeApiResponseEntity response = new SwipeApiResponseEntity();
 
+        // Find the most recent swipe record for this employee
+
+        Employee emp = employeeRepository.findByEmployeeId(employeeId);
+        Date newDate= new Date(new java.util.Date().getTime());
+        Swipe lastSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeDesc(emp,newDate);
+
+        if (lastSwipe == null) {
+
+            response.setMessage("Cannot swipe out. Employee has not swiped in or already swiped out.");
+            response.setStatus(HttpStatus.UNAUTHORIZED);
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+            response.setEmployee(emp);
+            return response;
+        }
         // Check if there is an open swipe record
 
         if (lastSwipe.getSwipeOutTime() != null) {
-            throw new RuntimeException("Cannot swipe out. Employee has not swiped in or already swiped out.");
+
+            response.setMessage("Cannot swipe out. Employee has not swiped in or already swiped out.");
+            response.setStatus(HttpStatus.UNAUTHORIZED);
+            response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
+            Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp,newDate);
+            response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+            Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,newDate);
+            response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+            response.setEmployee(emp);
+            return response;
         }
 
         // Update the last swipe record with swipe-out time
@@ -131,23 +219,56 @@ public class SwipeService {
                 = LocalTime
                 .parse(st1, dateTimeFormatter);
         lastSwipe.setSwipeOutTime(lt);
+
         swipeRepository.save(lastSwipe);
+
+        response.setMessage("Employee Swiped-Out Successfully");
+        response.setStatus(HttpStatus.OK);
+        response.setStatusCode(HttpStatus.OK.value());
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp,newDate);
+        response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,newDate);
+        response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+        response.setEmployee(emp);
+
+        return response;
     }
 
-    public String calculateActualWorkingHours(Swipe swipe)throws Exception {
-        int id = swipe.getEmployee().getEmployeeId();
-        Employee emp= employeeRepository.findByEmployeeId(id);
-        Date date = swipe.getDate();
+    public SwipeApiResponseEntity calculateActualWorkingHours(int employeeId, Date date) {
+        SwipeApiResponseEntity response = new SwipeApiResponseEntity();
+        Employee emp= employeeRepository.findByEmployeeId(employeeId);
         List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
-        int swipeSize = swipes.size();
+        Swipe firstSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp,date);
         Duration actualWorkingHours = Duration.ZERO;
 
-        if(swipes.isEmpty()){
-            throw new RuntimeException("No swipes found for the specified employee and date.");
+        if (firstSwipe == null){
+//            LocalTime lastSwipeOutTime = firstSwipe.getSwipeInTime().plusHours(8);
+//            firstSwipe.setSwipeOutTime(lastSwipeOutTime);
+//            swipeRepository.save(firstSwipe);
+
+            response.setMessage("No Swipe Data Available For Employee And Date");
+            response.setStatus(HttpStatus.NO_CONTENT);
+            response.setStatusCode(HttpStatus.NO_CONTENT.value());
+            return response;
         }
 
+        if (firstSwipe.getSwipeOutTime() == null){
+//            LocalTime lastSwipeOutTime = firstSwipe.getSwipeInTime().plusHours(8);
+//            firstSwipe.setSwipeOutTime(lastSwipeOutTime);
+//            swipeRepository.save(firstSwipe);
 
+            response.setMessage("Please Swipe out first");
+            response.setStatus(HttpStatus.BAD_REQUEST);
+            response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return response;
+        }
 
+        if(swipes.isEmpty()){
+            response.setMessage("No Swipe Data Available For Employee And Date");
+            response.setStatus(HttpStatus.NO_CONTENT);
+            response.setStatusCode(HttpStatus.NO_CONTENT.value());
+            return response;
+        }
 
 
         for (int i = 0; i < swipes.size(); i++) {
@@ -165,29 +286,38 @@ public class SwipeService {
             actualWorkingHours = actualWorkingHours.plus(Duration.between(swipeInTime, swipeOutTime));
                     }
 
-        String result = actualWorkingHours
-                .toHoursPart() + " hours, "
-                + actualWorkingHours.toMinutesPart() + " minutes, "
-                + actualWorkingHours.toSecondsPart() + " seconds";
 
-        return "Actual Working Hours: "+result;
+        String result = actualWorkingHours
+                .toHoursPart() + ":"
+                + actualWorkingHours.toMinutesPart() + ":"
+                + actualWorkingHours.toSecondsPart();
+
+        response.setMessage(result);
+        response.setStatus(HttpStatus.OK);
+        response.setStatusCode(HttpStatus.OK.value());
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp,date);
+        response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,date);
+        response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+        response.setResponseBody(swipes);
+        return response;
+
 
     }
 
 
-    public String calculateTotalWorkingHours(Swipe swipe) throws Exception {
-        int id = swipe.getEmployee().getEmployeeId();
-        Employee emp = employeeRepository.findByEmployeeId(id);
-        Date date = swipe.getDate();
-
-
-
+    public SwipeApiResponseEntity calculateTotalWorkingHours(int employeeId,Date date) {
+        SwipeApiResponseEntity response = new SwipeApiResponseEntity();
+        Employee emp = employeeRepository.findByEmployeeId(employeeId);
         List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
 
 
         //  null check ,Do this by exception handling
         if(swipes.isEmpty()){
-            throw new Exception("No swipes found for the specified employee and date.");
+            response.setMessage("No Swipe Data Available For Employee And Date");
+            response.setStatus(HttpStatus.NO_CONTENT);
+            response.setStatusCode(HttpStatus.NO_CONTENT.value());
+            return response;
         }
 
 
@@ -202,40 +332,56 @@ public class SwipeService {
 
         String result =
 
-                  totalWorkingHours.toHoursPart() + " hours, "
-                + totalWorkingHours.toMinutesPart() + " minutes, "
-                + totalWorkingHours.toSecondsPart() + " seconds";
+                  totalWorkingHours.toHoursPart() + ":"
+                + totalWorkingHours.toMinutesPart() + ":"
+                + totalWorkingHours.toSecondsPart();
 
-
-        return  "FirstSwipe: " +firstSwipeInTime +
-                "\nLastSwipe: "  +lastSwipeOutTime +
-                "\nTotal Working Hours : " +result ;
+        response.setMessage(result);
+        response.setStatus(HttpStatus.OK);
+        response.setStatusCode(HttpStatus.OK.value());
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp,date);
+        response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,date);
+        response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+        response.setResponseBody(swipes);
+        return response;
 
 
 
     }
 
 
-    public  String totalOutTime(Swipe swipe)throws Exception{
+    public  SwipeApiResponseEntity totalOutTime(int employeeId, Date date){
+        SwipeApiResponseEntity response = new SwipeApiResponseEntity();
 
-        int id = swipe.getEmployee().getEmployeeId();
-        Employee emp = employeeRepository.findByEmployeeId(id);
-        Date date = swipe.getDate();
-
+        Employee emp = employeeRepository.findByEmployeeId(employeeId);
+        //Swipe firstSwipe = swipeRepository.findFirstByEmployeeAndDate(emp,date);
         Swipe firstSwipeIn = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp,date);
         Swipe lastSwipeOut = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,date);
+        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
 
-        if (firstSwipeIn == null || lastSwipeOut == null) {
-            throw new RuntimeException("No swipes found for the specified employee and date.");
+        if(firstSwipeIn == null || lastSwipeOut == null ){
+            response.setMessage("No Swipe Data Available For Employee And Date");
+            response.setStatus(HttpStatus.NO_CONTENT);
+            response.setStatusCode(HttpStatus.NO_CONTENT.value());
 
         }
+        if (date == null && swipes.isEmpty()){
+            response.setMessage("No Swipe Data Available For Employee And Date");
+            response.setStatus(HttpStatus.NO_CONTENT);
+            response.setStatusCode(HttpStatus.NO_CONTENT.value());
+        }
+//        if (firstSwipeIn == null || lastSwipeOut == null) {
+//            throw new RuntimeException("No swipes found for the specified employee and date.");
+//
+//        }
 
         LocalTime firstSwipeInTime = firstSwipeIn.getSwipeInTime();
         LocalTime lastSwipeOutTime = lastSwipeOut.getSwipeOutTime();
         Duration totalWorkingHours = Duration.ZERO;
         totalWorkingHours = Duration.between(firstSwipeInTime,lastSwipeOutTime);
 
-        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
+//        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
 
         Duration actualWorkingHours = Duration.ZERO;
 
@@ -261,26 +407,23 @@ public class SwipeService {
 
         String result =
 
-                          totalOutTime.toHoursPart() + " hours, "
-                        + totalOutTime.toMinutesPart() + " minutes, "
-                        + totalOutTime.toSecondsPart() + " seconds";
-        return "OutTime: " + result;
+                          totalOutTime.toHoursPart() + ":"
+                        + totalOutTime.toMinutesPart() + ":"
+                        + totalOutTime.toSecondsPart();
+        response.setMessage(result);
+        response.setStatus(HttpStatus.OK);
+        response.setStatusCode(HttpStatus.OK.value());
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp,date);
+        response.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp,date);
+        response.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
+        response.setResponseBody(swipes);
+        return response;
 
     }
 
 
 
 
-//    public List<Swipe> getAllEmployee(Swipe swipe) {
-//
-//
-//        int id = swipe.getEmployee().getEmployeeId();
-//        Employee emp= employeeRepository.findByEmployeeId(id);
-//        int empId=emp.getEmployeeId();
-//        int id1 = swipe.getEmployee().getEmployeeId();
-//        Date date = swipe.getDate();
-//        List<Swipe> empSwipe=swipeRepository.findByEmployeeAndDate(id1, date);
-//        return empSwipe;
-//
-//    }
+
 }

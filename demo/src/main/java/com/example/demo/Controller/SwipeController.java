@@ -89,4 +89,20 @@ public class SwipeController {
         return ResponseEntity.status(response.getStatus()).body(response);
 
     }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping(path="/getRemainingWorkingHours")
+    public ResponseEntity<ApiResponseEntity> getEmployeeRemainingWorkingHours(@RequestParam int employeeId,@RequestParam String date){
+        Date sqlDate = Date.valueOf(date);
+        ApiResponseEntity response = swipeService.remainingWorkingHours(employeeId,sqlDate);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping(path="/getEndOfDay")
+    public ResponseEntity<ApiResponseEntity> endOfDay(@RequestParam int employeeId,@RequestParam String date){
+        Date sqlDate = Date.valueOf(date);
+        ApiResponseEntity response = swipeService.endOfDay(employeeId,sqlDate);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 }

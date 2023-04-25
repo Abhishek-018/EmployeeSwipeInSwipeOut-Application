@@ -9,6 +9,8 @@ public class TimesheetDetails {
     String actualWorkingHours;
     String totalWorkingHours;
     String totalTimeSpentOutside;
+    String remainingWorkingHours;
+    String endOfDayTime;
 
     public LocalTime getFirstSwipe() {
         return firstSwipe;
@@ -50,16 +52,34 @@ public class TimesheetDetails {
         this.totalTimeSpentOutside = totalTimeSpentOutside;
     }
 
+    public String getRemainingWorkingHours() {
+        return remainingWorkingHours;
+    }
+
+    public void setRemainingWorkingHours(String remainingWorkingHours) {
+        this.remainingWorkingHours = remainingWorkingHours;
+    }
+
+    public String getEndOfDayTime() {
+        return endOfDayTime;
+    }
+
+    public void setEndOfDayTime(String endOfDayTime) {
+        this.endOfDayTime = endOfDayTime;
+    }
+
     public TimesheetDetails( ) {
 
     }
 
-    public TimesheetDetails(LocalTime firstSwipe, LocalTime lastSwipe, String actualWorkingHours, String totalWorkingHours, String totalTimeSpentOutside) {
+    public TimesheetDetails(LocalTime firstSwipe, LocalTime lastSwipe, String actualWorkingHours, String totalWorkingHours, String totalTimeSpentOutside, String remainingWorkingHours, String endOfDayTime) {
         this.firstSwipe = firstSwipe;
         this.lastSwipe = lastSwipe;
         this.actualWorkingHours = actualWorkingHours;
         this.totalWorkingHours = totalWorkingHours;
         this.totalTimeSpentOutside = totalTimeSpentOutside;
+        this.remainingWorkingHours = remainingWorkingHours;
+        this.endOfDayTime = endOfDayTime;
     }
 }
 

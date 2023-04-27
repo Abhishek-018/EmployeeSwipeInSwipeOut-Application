@@ -253,29 +253,56 @@ public class SwipeService {
     private Duration findTotalWorkingHours(int employeeId, Date date) {
 
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
-        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
-
         Swipe firstSwipeIn = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp, date);
         Swipe lastSwipeOut = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, date);
         LocalTime firstSwipeInTime = firstSwipeIn.getSwipeInTime();
         LocalTime lastSwipeOutTime = lastSwipeOut.getSwipeOutTime();
         Duration totalWorkingHours = Duration.ZERO;
-        LocalTime t;
+
         totalWorkingHours = Duration.between(firstSwipeInTime, lastSwipeOutTime);
         return totalWorkingHours;
 
     }
 
 
-    public ApiResponseEntity calculateActualWorkingHours(int employeeId, Date date) {
+    private Duration findRemainingWorkingHours(int employeeId) {
+        Duration actualWorkingHours = Duration.ZERO;
+        Duration remainingWorkingHours = Duration.ZERO;
 
+        Employee emp = employeeRepository.findByEmployeeId(employeeId);
+        Date todaysDate = new Date(new java.util.Date().getTime());
+        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, todaysDate);
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, todaysDate);
+        if (firstSwipeInRecord.getSwipeOutTime()==null){
+            LocalTime localTime = LocalTime.now();
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
+            String st1 = localTime.format(dateTimeFormatter);
+            LocalTime lt
+                    = LocalTime
+                    .parse(st1, dateTimeFormatter);
+            firstSwipeInRecord.setSwipeOutTime(lt);
+            LocalTime temporarySwipeOutTime=firstSwipeInRecord.getSwipeOutTime();
+            Duration  presentActualWorkingHour = Duration.between(firstSwipeInRecord.getSwipeInTime(),temporarySwipeOutTime);
+            remainingWorkingHours = Duration.ofHours(8).minus(presentActualWorkingHour);
+            return remainingWorkingHours;
+
+
+        }
+        actualWorkingHours = findActualWorkingHours(swipes);
+        remainingWorkingHours = Duration.ofHours(8).minus(actualWorkingHours);
+        return remainingWorkingHours;
+    }
+
+
+    public ApiResponseEntity calculateActualWorkingHours(int employeeId, Date date) {
+        Duration actualWorkingHours = Duration.ZERO;
         ApiResponseEntity response = new ApiResponseEntity();
         TimesheetDetails timesheetDetails = new TimesheetDetails();
 
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
         List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
         Swipe firstSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp, date);
-        Duration actualWorkingHours = Duration.ZERO;
+
 
         if (firstSwipe == null) {
 
@@ -331,13 +358,14 @@ public class SwipeService {
 
 
     public ApiResponseEntity calculateTotalWorkingHours(int employeeId, Date date) {
+        Duration totalWorkingHours = Duration.ZERO;
         ApiResponseEntity response = new ApiResponseEntity();
         TimesheetDetails timesheetDetails = new TimesheetDetails();
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
         List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
 
 
-        //  null check ,Do this by exception handling
+        //  Swipes List is Empty check
         if (swipes.isEmpty()) {
             response.setMessage("No Swipe Data Available For Employee And Date");
             response.setStatus(HttpStatus.NO_CONTENT);
@@ -346,13 +374,12 @@ public class SwipeService {
         }
 
 
-        Swipe firstSwipeIn = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp, date);
-        Swipe lastSwipeOut = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, date);
-        LocalTime firstSwipeInTime = firstSwipeIn.getSwipeInTime();
-        LocalTime lastSwipeOutTime = lastSwipeOut.getSwipeOutTime();
-        Duration totalWorkingHours = Duration.ZERO;
-        LocalTime t;
-        totalWorkingHours = Duration.between(firstSwipeInTime, lastSwipeOutTime);
+        //Swipe firstSwipeIn = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp, date);
+        //Swipe lastSwipeOut = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, date);
+        //LocalTime firstSwipeInTime = firstSwipeIn.getSwipeInTime();
+        //LocalTime lastSwipeOutTime = lastSwipeOut.getSwipeOutTime();
+        totalWorkingHours = findTotalWorkingHours(employeeId,date);
+        //totalWorkingHours = Duration.between(firstSwipeInTime, lastSwipeOutTime);
 
 
         String result =
@@ -378,7 +405,7 @@ public class SwipeService {
     }
 
 
-    public ApiResponseEntity totalOutTime(int employeeId, Date date) {
+    public ApiResponseEntity calculateTotalOutTime(int employeeId, Date date) {
         ApiResponseEntity response = new ApiResponseEntity();
         TimesheetDetails timesheetDetails = new TimesheetDetails();
 
@@ -409,11 +436,9 @@ public class SwipeService {
 
 
         Duration actualWorkingHours = Duration.ZERO;
+        Duration totalOutTime = Duration.ZERO;
 
         actualWorkingHours = findActualWorkingHours(swipes);
-
-
-        Duration totalOutTime = Duration.ZERO;
         totalOutTime = totalWorkingHours.minus(actualWorkingHours);
 
 
@@ -438,11 +463,15 @@ public class SwipeService {
 
     }
 
-    public ApiResponseEntity remainingWorkingHours(int employeeId, Date date) {
+    public ApiResponseEntity calculateRemainingWorkingHours(int employeeId) {
+
+        Duration remainingWorkingHours = Duration.ZERO;
+
         ApiResponseEntity response = new ApiResponseEntity();
         TimesheetDetails timesheetDetails = new TimesheetDetails();
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
-        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
+        Date todaysDate = new Date(new java.util.Date().getTime());
+        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, todaysDate);
 
         if (swipes.isEmpty()) {
             response.setMessage("No Swipe Data Available For Employee And Date");
@@ -450,11 +479,10 @@ public class SwipeService {
             response.setStatusCode(HttpStatus.NO_CONTENT.value());
             return response;
         }
-        Duration actualWorkingHours = Duration.ZERO;
 
 
-        actualWorkingHours = findActualWorkingHours(swipes);
-        Duration remainingWorkingHours = Duration.ofHours(8).minus(actualWorkingHours);
+        remainingWorkingHours = findRemainingWorkingHours(employeeId);
+
         String result =
 
                 remainingWorkingHours.toHoursPart() + ":"
@@ -465,9 +493,9 @@ public class SwipeService {
         response.setStatus(HttpStatus.OK);
         response.setStatusCode(HttpStatus.OK.value());
 
-        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, date);
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, todaysDate);
         timesheetDetails.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
-        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, date);
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, todaysDate);
         timesheetDetails.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
         timesheetDetails.setRemainingWorkingHours(result);
 
@@ -477,11 +505,14 @@ public class SwipeService {
 
     }
 
-    public ApiResponseEntity endOfDay(int employeeId, Date date) {
+    public ApiResponseEntity calculateEndOfDay(int employeeId) {
+        Duration remainingWorkingHours = Duration.ZERO;
+        Duration endOfDay = Duration.ZERO;
         ApiResponseEntity response = new ApiResponseEntity();
         TimesheetDetails timesheetDetails = new TimesheetDetails();
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
-        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, date);
+        Date todaysDate = new Date(new java.util.Date().getTime());
+        List<Swipe> swipes = swipeRepository.findByEmployeeAndDate(emp, todaysDate);
 
         if (swipes.isEmpty()) {
             response.setMessage("No Swipe Data Available For Employee And Date");
@@ -490,41 +521,40 @@ public class SwipeService {
             return response;
         }
 
-        Duration actualWorkingHours = Duration.ZERO;
-        Duration totalWorkingHours = Duration.ZERO;
-        Duration totalOutTime = Duration.ZERO;
-        Duration endOfDay = Duration.ZERO;
-
-
-        actualWorkingHours = findActualWorkingHours(swipes);
-        totalWorkingHours = findTotalWorkingHours(employeeId, date);
-        totalOutTime = totalWorkingHours.minus(actualWorkingHours);
-        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, date);
-        int hours = firstSwipeInRecord.getSwipeInTime().getHour();
-        int minutes = firstSwipeInRecord.getSwipeInTime().getMinute();
-        int seconds = firstSwipeInRecord.getSwipeInTime().getSecond();
-        Duration firstSwipeInTime = Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
-        endOfDay = Duration.ofHours(8).plus(firstSwipeInTime).plus(totalOutTime);
+        LocalTime localTime = LocalTime.now();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
+        String st1 = localTime.format(dateTimeFormatter);
+        LocalTime lt
+                = LocalTime
+                .parse(st1, dateTimeFormatter);
+        int hours = lt.getHour();
+        int minutes = lt.getMinute();
+        int seconds = lt.getSecond();
+        Duration liveTime = Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+        remainingWorkingHours = findRemainingWorkingHours(employeeId);
+        endOfDay= liveTime.plus(remainingWorkingHours);
 
         String result =
 
                 endOfDay.toHoursPart() + ":"
                         + endOfDay.toMinutesPart() + ":"
                         + endOfDay.toSecondsPart();
-
+        timesheetDetails.setEndOfDayTime(result);
+        Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, todaysDate);
+        timesheetDetails.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
+        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, todaysDate);
+        timesheetDetails.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
 
         response.setMessage("End of Day Calculated Successfully");
         response.setStatus(HttpStatus.OK);
         response.setStatusCode(HttpStatus.OK.value());
-
-        //Swipe firstSwipeInRecord = swipeRepository.findFirstByEmployeeAndDate(emp, date);
-        timesheetDetails.setFirstSwipe(firstSwipeInRecord.getSwipeInTime());
-        Swipe lastSwipeOutRecord = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(emp, date);
-        timesheetDetails.setLastSwipe(lastSwipeOutRecord.getSwipeOutTime());
-        timesheetDetails.setEndOfDayTime(result);
-
         response.setResponseBody(timesheetDetails);
+
         return response;
 
+
     }
+
+
+
 }

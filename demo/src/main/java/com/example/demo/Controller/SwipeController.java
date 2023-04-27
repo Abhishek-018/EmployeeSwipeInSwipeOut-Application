@@ -85,24 +85,22 @@ public class SwipeController {
 
     public ResponseEntity<ApiResponseEntity> getEmployeeOutTime(@RequestParam int employeeId,@RequestParam String date) {
         Date sqlDate = Date.valueOf(date);
-        ApiResponseEntity response = swipeService.totalOutTime(employeeId, sqlDate);
+        ApiResponseEntity response = swipeService.calculateTotalOutTime(employeeId, sqlDate);
         return ResponseEntity.status(response.getStatus()).body(response);
 
     }
 
     @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path="/getRemainingWorkingHours")
-    public ResponseEntity<ApiResponseEntity> getEmployeeRemainingWorkingHours(@RequestParam int employeeId,@RequestParam String date){
-        Date sqlDate = Date.valueOf(date);
-        ApiResponseEntity response = swipeService.remainingWorkingHours(employeeId,sqlDate);
+    public ResponseEntity<ApiResponseEntity> getEmployeeRemainingWorkingHours(@RequestParam int employeeId){
+        ApiResponseEntity response = swipeService.calculateRemainingWorkingHours(employeeId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
     @CrossOrigin(origins = "http://localhost:4200")
     @GetMapping(path="/getEndOfDay")
-    public ResponseEntity<ApiResponseEntity> endOfDay(@RequestParam int employeeId,@RequestParam String date){
-        Date sqlDate = Date.valueOf(date);
-        ApiResponseEntity response = swipeService.endOfDay(employeeId,sqlDate);
+    public ResponseEntity<ApiResponseEntity> getEndOfDay(@RequestParam int employeeId){
+        ApiResponseEntity response = swipeService.calculateEndOfDay(employeeId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

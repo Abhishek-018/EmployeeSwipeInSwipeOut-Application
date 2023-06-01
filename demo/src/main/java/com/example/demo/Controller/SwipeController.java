@@ -1,9 +1,9 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Model.ApiResponseEntity;
-import com.example.demo.Model.TimesheetDetails;
-import com.example.demo.Service.SwipeService;
+import com.example.demo.Service.Implementation.SwipeServiceImplementation;
 //import com.example.demo.repository.EmployeeJdbcRepository;
+import com.example.demo.Service.SwipeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +16,12 @@ import java.sql.Date;
 
 public class SwipeController {
 
+    private SwipeService swipeService;
 
     @Autowired
-    SwipeService swipeService;
-
+    public SwipeController(SwipeService swipeService){
+        this.swipeService = swipeService;
+    }
 
 
 

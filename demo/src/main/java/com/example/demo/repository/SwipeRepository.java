@@ -11,17 +11,27 @@ import java.sql.Date;
 import java.util.List;
 
 @Repository
-public interface SwipeRepository extends JpaRepository<Swipe,Integer> {
+public interface SwipeRepository extends JpaRepository<Swipe, Integer> {
     Swipe findFirstByEmployeeOrderBySwipeInTimeDesc(Employee employee);
-    Swipe findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(Employee employee,Date date);
-    Swipe findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(Employee employee,Date date);
+
+    Swipe findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(Employee employee, Date date);
+
+    Swipe findFirstByEmployeeAndDateOrderBySwipeOutTimeDesc(Employee employee, Date date);
+
     Swipe findFirstByEmployeeAndDateOrderBySwipeInTimeDesc(Employee emp, Date date);
+
     Swipe findByDate(Date date);
+
     List<Swipe> findByEmployeeAndDate(Employee employee, Date date);
+
+    List<Swipe> findLastByEmployeeAndDateOrderByDateDesc(Employee employee, Date date);
 
     Swipe findFirstByEmployeeAndDate(Employee emp, Date date);
 
+    Swipe findFirstByEmployeeOrderByDateDesc(Employee emp);
+    //Swipe findFirstByEmployeeAndDateOrderBySwipeInTimeDesc(Employee emp,Date date);
 
+    //Swipe findByEmployeeAndDate
 //    @Query(value = "select * from emp_swipe_details where employee_id=?1 and date=?2", nativeQuery = true)
 //    List<Swipe> findByEmployeeAndDate(int empId, Date date);
 

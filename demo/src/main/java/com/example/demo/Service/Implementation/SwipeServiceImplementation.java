@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 import java.time.format.DateTimeFormatter;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -32,12 +34,17 @@ public class SwipeServiceImplementation implements SwipeService {
     public ApiResponseEntity swipeIn(int employeeId) {
         ApiResponseEntity response = new ApiResponseEntity();
 
-        boolean SwipeInSuccessful = false;
+        boolean swipeInSuccessful = false;
         Employee emp = employeeRepository.findByEmployeeId(employeeId);
-        Date newDate = new Date(new java.util.Date().getTime());
-        Swipe swipeRecord  =swipeRepository.findFirstByEmployeeOrderByDateDesc(emp);
+        java.sql.Date  newDate = new java.sql.Date (new java.util.Date().getTime());
+//        Date newDate = new Date(new java.util.Date().getTime());
+        Swipe swipeRecord = swipeRepository.findFirstByEmployeeOrderByDateDesc(emp);
         Date lastSwipeDate = swipeRecord.getDate();
+//        Swipe lastSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeAsc(emp, lastSwipeDate);
         Swipe lastSwipe = swipeRepository.findFirstByEmployeeAndDateOrderBySwipeInTimeDesc(emp, lastSwipeDate);
+
+        LocalDate databaseDate = lastSwipe.getDate().toLocalDate();
+        LocalDate newDateLocal = newDate.toLocalDate();
 
 
         List<Swipe> getAllSwipe = swipeRepository.findAll();
@@ -59,7 +66,7 @@ public class SwipeServiceImplementation implements SwipeService {
             newSwipe.setSwipeInTime(lt);
             swipeRepository.save(newSwipe);
 
-            SwipeInSuccessful = true;
+            swipeInSuccessful = true;
             response.setMessage("Employee Swiped-in Successfully");
             response.setStatus(HttpStatus.OK);
             response.setStatusCode(HttpStatus.OK.value());
@@ -67,8 +74,7 @@ public class SwipeServiceImplementation implements SwipeService {
             //return response;
 
             System.out.println(newSwipe.getSwipeInTime());
-        }
-        if (!getAllSwipe.isEmpty()) {
+        } else {
             //Inserting FirstSwipeIn record of an Employee for the day
 
             if (lastSwipe == null) {
@@ -91,7 +97,7 @@ public class SwipeServiceImplementation implements SwipeService {
                 newSwipe.setSwipeInTime(lt);
                 swipeRepository.save(newSwipe);
 
-                SwipeInSuccessful = true;
+                swipeInSuccessful = true;
 
                 response.setMessage("Employee Swiped-in Successfully");
                 response.setStatus(HttpStatus.OK);
@@ -102,15 +108,10 @@ public class SwipeServiceImplementation implements SwipeService {
                 System.out.println(newSwipe.getSwipeInTime());
 
             } else if (lastSwipe != null && lastSwipe.getSwipeOutTime() != null) {
-//                LocalTime fourPM = LocalTime.of(16, 00);
-//                if (LocalTime.now().isAfter(fourPM)){
-//
-//
-//                }
+
                 Swipe newSwipe = new Swipe();
                 newSwipe.setEmployee(emp);
 
-                //Date newDate = new Date(new java.util.Date().getTime());
                 newSwipe.setDate(newDate);
                 LocalTime localTime = LocalTime.now();
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
@@ -122,7 +123,7 @@ public class SwipeServiceImplementation implements SwipeService {
                 newSwipe.setSwipeInTime(lt);
                 swipeRepository.save(newSwipe);
 
-                SwipeInSuccessful = true;
+                swipeInSuccessful = true;
 
                 response.setMessage("Employee Swiped-in Successfully");
                 response.setStatus(HttpStatus.OK);
@@ -132,21 +133,48 @@ public class SwipeServiceImplementation implements SwipeService {
 
                 System.out.println(newSwipe.getSwipeInTime());
 
+            //databaseDate.isBefore(newDateLocal)
+
+            } else if (databaseDate.isBefore(newDateLocal) && lastSwipe.getSwipeOutTime() == null) {
+
+                lastSwipe.setSwipeOutTime(LocalTime
+                        .of(0, 0, 0));
+//                swipeRepository.save(lastSwipe);
+                Swipe todaysSwipe = new Swipe();
+                todaysSwipe.setEmployee(emp);
+                todaysSwipe.setDate(newDate);
+                LocalTime localTime = LocalTime.now();
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm:ss a");
+                String st1 = localTime.format(dateTimeFormatter);
+                LocalTime lt
+                        = LocalTime
+                        .parse(st1, dateTimeFormatter);
+                todaysSwipe.setSwipeInTime(lt);
+                List<Swipe> allSwipes = new ArrayList<>();
+                allSwipes.add(lastSwipe);
+                allSwipes.add(todaysSwipe);
+                swipeRepository.saveAll(allSwipes);
+                swipeInSuccessful = true;
+                response.setMessage("Employee Swiped-in Successfully");
+                response.setStatus(HttpStatus.OK);
+                response.setStatusCode(HttpStatus.OK.value());
+                response.setResponseBody(emp);
             } else {
 
                 response.setMessage("Cannot swipe-in. Employee already swiped in and has not swiped out.");
                 response.setStatus(HttpStatus.UNAUTHORIZED);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED.value());
                 response.setResponseBody(emp);
+                return response;
 
 
             }
 
         }
 
-        if (SwipeInSuccessful) {
-            return response;
-        }
+//        if (swipeInSuccessful) {
+//            return response;
+//        }
         return response;
     }
 
@@ -371,7 +399,6 @@ public class SwipeServiceImplementation implements SwipeService {
         }
 
         totalWorkingHours = findTotalWorkingHours(employeeId, date);
-
 
 
         String result =

@@ -1,0 +1,86 @@
+The JPA method `findFirstByEmployeeOrderByDateDesc(Employee emp)` returns the first record (i.e., the most recent record) from the "Swipe" table that matches the specified employee, ordered by the "date" attribute in descending order.
+
+Let's break down the method and its components:
+
+- `findFirstByEmployee`: This part of the method specifies that we want to find the first record that matches the provided employee. It expects an instance of the "Employee" class as a parameter.
+- `OrderByDateDesc`: This part instructs JPA to order the results based on the "date" attribute in descending order. It ensures that the most recent swipes will appear first in the result set.
+
+Here's an example to help illustrate how this method works:
+
+Let's say you have the following data in your "Swipe" table:
+
+| Swipe ID | Swipe In Time | Swipe Out Time | Date       | Employee ID |
+|----------|---------------|----------------|------------|-------------|
+| 1        | 09:00 AM      | 05:00 PM       | 2023-06-01 | 100         |
+| 2        | 08:30 AM      | 04:30 PM       | 2023-06-02 | 100         |
+| 3        | 08:45 AM      | 04:45 PM       | 2023-06-03 | 100         |
+| 4        | 09:15 AM      | 05:15 PM       | 2023-06-01 | 101         |
+| 5        | 09:30 AM      | 05:30 PM       | 2023-06-02 | 101         |
+| 6        | 08:30 AM      | 04:30 PM       | 2023-06-03 | 101         |
+
+Now, suppose you execute the following code:
+
+```java
+Employee employee = new Employee();
+employee.setId(100);
+
+Swipe swipe = swipeRepository.findFirstByEmployeeOrderByDateDesc(employee);
+```
+
+The `swipe` variable will hold the result of the query. In this case, since the employee ID is set to 100, the method will return the first record with the employee ID 100, which has the most recent date. So, the result will be:
+
+| Swipe ID | Swipe In Time | Swipe Out Time | Date       | Employee ID |
+|----------|---------------|----------------|------------|-------------|
+| 3        | 08:45 AM      | 04:45 PM       | 2023-06-03 | 100         |
+
+Therefore, the method allows you to retrieve the latest swipe record for a specific employee based on the date.
+
+
+ //Swipe findFirstByEmployeeOrderByDateDesc(Employee emp);
+    //This method  Swipe findFirstByEmployeeOrderByDateDesc(Employee emp); returns swipe record of
+    //employee which is passed as argument to method in descending order.
+
+SQL Equivalent to above query
+//    select * from  emp_swipe_details where employee_id=2 and
+//    date = (select * from  emp_swipe_details where employee_id=2 Order by date desc )
+//    Order by swipe_in_time desc limit 1;
+
+Order By Clause in SQl:
+Certainly! In SQL, the "ORDER BY" clause is used to sort the result set of a query in a specific order. It allows you to arrange the rows in the result set based on one or more columns.
+
+Here's a simple example to illustrate the usage of "ORDER BY":
+
+Let's say you have a table called "Students" with the following columns: "StudentID", "Name", and "GPA". The table contains the following data:
+
+```
+StudentID | Name       | GPA
+----------------------------
+1         | John Smith | 3.8
+2         | Jane Doe   | 3.5
+3         | Mark Johnson | 3.2
+```
+
+Now, let's say you want to retrieve the records from the "Students" table in descending order based on the "GPA" column. You can use the "ORDER BY" clause in your SQL query like this:
+
+```sql
+SELECT * FROM Students ORDER BY GPA DESC;
+```
+
+The result of this query will be:
+
+```
+StudentID | Name       | GPA
+----------------------------
+1         | John Smith | 3.8
+2         | Jane Doe   | 3.5
+3         | Mark Johnson | 3.2
+```
+
+As you can see, the rows are sorted based on the "GPA" column in
+descending order. John Smith, who has the highest GPA of 3.8, appears
+first in the result set, followed by Jane Doe and Mark Johnson.
+
+In summary, the "ORDER BY" clause allows you to specify the column(s)
+by which you want to sort the query results and the order
+(ascending or descending) in which you want them sorted.
+

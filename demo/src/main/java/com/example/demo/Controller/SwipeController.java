@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Model.ApiResponseEntity;
+import com.example.demo.Model.Employee;
 import com.example.demo.Service.Implementation.SwipeServiceImplementation;
 //import com.example.demo.repository.EmployeeJdbcRepository;
 import com.example.demo.Service.SwipeService;
@@ -35,8 +36,8 @@ public class SwipeController {
 
     @CrossOrigin(origins = "http://localhost:4200")
     @PostMapping(path ="/out")
-    public ResponseEntity<ApiResponseEntity> swipeOut(@RequestParam int employeeId ) {
-            ApiResponseEntity response = swipeService.swipeOut(employeeId);
+    public ResponseEntity<ApiResponseEntity> swipeOut(@RequestBody Employee employee ) {
+            ApiResponseEntity response = swipeService.swipeOut(employee.getEmployeeId());
             return ResponseEntity.status(response.getStatus()).body(response);
 
     }

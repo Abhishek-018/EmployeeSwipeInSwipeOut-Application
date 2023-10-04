@@ -1,5 +1,6 @@
 package com.example.demo.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ public class ApiResponseEntity {
     String message;
     HttpStatus status;
     int statusCode;
+    @JsonIgnore
     List<String> invalidInput = new ArrayList<>();
     Object responseBody;
 
